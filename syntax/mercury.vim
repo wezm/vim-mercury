@@ -2,7 +2,7 @@
 " Language:     Mercury
 " Maintainer:   Sebastian Godelet <sebastian.godelet@outlook.com>
 " Extensions:   *.m *.moo
-" Last Change:  2018-09-01
+" Last Change:  2022-10-02
 
 " for documentation, please use :help mercury-syntax
 
@@ -88,12 +88,14 @@ syn keyword mercuryPragma       check_termination
 syn keyword mercuryPragma       consider_used
 syn keyword mercuryPragma       does_not_terminate
 syn keyword mercuryPragma       fact_table
+syn keyword mercuryPragma       format_call
 syn keyword mercuryPragma       inline
 syn keyword mercuryPragma       loop_check
 syn keyword mercuryPragma       memo
 syn keyword mercuryPragma       minimal_model
 syn keyword mercuryPragma       no_inline
 syn keyword mercuryPragma       obsolete
+syn keyword mercuryPragma       obsolete_proc
 syn keyword mercuryPragma       promise_equivalent_clauses
 syn keyword mercuryPragma       source_file
 syn keyword mercuryPragma       terminates
@@ -115,6 +117,7 @@ syn keyword mercuryForeignMod   attach_to_io_state
 syn keyword mercuryForeignMod   can_pass_as_mercury_type word_aligned_pointer stable
 syn keyword mercuryForeignMod   may_call_mercury will_not_call_mercury
 syn keyword mercuryForeignMod   may_duplicate may_not_duplicate
+syn keyword mercuryForeignMod   may_export_body may_not_export_body
 syn keyword mercuryForeignMod   may_modify_trail will_not_modify_trail
 syn keyword mercuryForeignMod   no_sharing unknown_sharing sharing
 syn keyword mercuryForeignMod   promise_pure promise_semipure
@@ -307,12 +310,8 @@ if !exists("mercury_no_highlight_foreign") || !mercury_no_highlight_foreign
   syn region  mercuryForeignJavaBlock    matchgroup=mercuryBracket start=/\v\(("Java"|java)/rs=s+1 end=')'
         \ transparent fold contained contains=@mercuryForeign,
         \ mercuryJavaCode,mercuryBlock
-  syn region  mercuryForeignErlangBlock  matchgroup=mercuryBracket start=/\v\(("Erlang"|erlang)/rs=s+1 end=')'
-        \ transparent fold contained contains=@mercuryForeign,
-        \ mercuryErlangCode,mercuryBlock
   syn cluster mercuryForeignBlock contains=mercuryForeignCBlock,
-        \ mercuryForeignCSharpBlock,mercuryForeignJavaBlock,
-        \ mercuryForeignErlangBlock
+        \ mercuryForeignCSharpBlock,mercuryForeignJavaBlock
   syn match   mercuryPragmaForeign /\v^\s*:-\s+pragma\s+foreign_(code|proc|decl|type|export(_enum)?|enum|import_module)/
         \ transparent nextgroup=@mercuryForeignBlock
 
@@ -413,39 +412,11 @@ if !exists("mercury_no_highlight_foreign") || !mercury_no_highlight_foreign
   syn region mercuryJavaCode   matchgroup=mercuryString start=+"+ skip=+""+ end=+"+
         \ transparent fold contained contains=@mercuryCppLike,mercuryCString,mercuryJavaType
 
-    " Declaration for Erlang
-  syn keyword mercuryErlangKeyword contained after and andalso band begin bnot bor bsl bsr bxor case
-        \ catch cond end fun if let not of orelse query receive throw try when xor
-  " syn keyword mercuryErlangBool true false
-  syn match mercuryErlangExtNumLiteral "\v([2-9]|[12][0-9]|3[0-6])#[A-Za-z0-9]+" contained
-  syn match mercuryErlangOperator "\v[?]" contained
-  syn match mercuryErlangLogical "\v[,;.]" contained
-  syn region mercuryErlangString start=+""+ end=+""+ contained contains=@Spell
-  syn region mercuryErlangString start=+\v\\"+ end=+\v\\"+ contained contains=@Spell
-  syn cluster mercuryErlangTerms contains=mercuryErlangBlock,mercuryErlangList,
-        \ mercuryErlangString,mercuryCLikeChar,mercuryCLikeNumber,
-        \ mercuryErlangExtNumLiteral,mercuryFloat,mercuryComment,mercuryKeyword,
-        \ mercuryErlangKeyword, mercuryErlangOperator, mercuryCComment,
-        \ mercuryErlangBool,mercuryOperator,mercurySingleton,mercuryImplication,
-        \ mercuryErlangDCGAction,mercuryErlangLogical,@mercuryFormatting
-  syn region  mercuryErlangList contained matchgroup=mercuryBracket
-        \ start='\[' end=']' transparent fold  contains=@mercuryErlangTerms
-  syn region  mercuryErlangBlock    contained matchgroup=mercuryBracket
-        \ start='(' end=')'  transparent fold  contains=@mercuryErlangTerms
-  syn region  mercuryErlangDCGAction contained matchgroup=mercuryBracket
-        \ start='{' end='}'  transparent fold  contains=@mercuryErlangTerms
-
-  syn cluster mercuryErlang contains=@mercuryErlangTerms,mercuryErlangDCGAction,
-        \ mercuryForeignIface
-
-  syn region mercuryErlangCode   matchgroup=mercuryString start=+"+ skip=+""+ end=+"+
-        \ transparent fold contained contains=@mercuryErlang
-
     " Matching the foreign language name identifiers, this comes after all the
     " code blocks, to match the identifiers in quotes
-  syn match mercuryForeignId /\v<(c|csharp|java|il|erlang)>/ contained
+  syn match mercuryForeignId /\v<(c|csharp|java)>/ contained
   syn region mercuryForeignId contained matchgroup=mercuryString
-        \ start=+\v["](C#|Java|C|I[Ll]|Erlang)["]{-}+rs=s+1 end=+"+
+        \ start=+\v["](C#|Java|C)["]{-}+rs=s+1 end=+"+
 
     " Matching foreign interface builtins and success indicator
   syn keyword mercuryForeignIface contained SUCCESS_INDICATOR
@@ -619,12 +590,6 @@ if !exists("mercury_no_highlight_foreign") || !mercury_no_highlight_foreign
   hi def link mercuryCSharpType       mercuryForeignType
   hi def link mercuryJavaBool         mercuryBool
   hi def link mercuryJavaType         mercuryForeignType
-  hi def link mercuryErlangKeyword    Keyword
-  hi def link mercuryErlangOperator   Operator
-  hi def link mercuryErlangBool       mercuryBool
-  hi def link mercuryErlangExtNumLiteral Number
-  hi def link mercuryErlangString     String
-  hi def link mercuryErlangLogical    mercuryLogical
   if exists("mercury_highlight_extra") && mercury_highlight_extra
     hi def link mercuryForeignType  Type
   else
